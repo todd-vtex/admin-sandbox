@@ -7,6 +7,8 @@ import {
   // Button,
   FloatingActionBar
 } from 'vtex.styleguide'
+import { useQuery } from 'react-apollo'
+import helloworld from './graphql/helloworld.gql'
 // import Button from '@material-ui/core/Button';
 // import "./myFile.css";
 
@@ -33,6 +35,7 @@ const style = {
 };
 
 const AdminExample: FC = () => {
+  const { data } = useQuery(helloworld)
   return (
     <Layout>
       <PageBlock title="Order Operator Settings"
@@ -44,10 +47,10 @@ const AdminExample: FC = () => {
           </div>
           <div style={style.box}>
             <Toggle label="Activated" size="large" />
-
           </div>
         </div>
-
+        <div>Hi there</div>
+        <div><p>{data?.helloworld}</p></div>
         <div className="mb5">
           <Input className="pb2 mw9" style={style.smallButton} label="Account"/>
         </div>
