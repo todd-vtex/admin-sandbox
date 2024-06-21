@@ -1,4 +1,6 @@
-import React, {FC} from 'react'
+// import React, {FC, useState, useEffect } from 'react'
+import React, {FC, useState } from 'react'
+const axios = require('axios')
 import {
   Layout,
   PageBlock,
@@ -7,10 +9,13 @@ import {
   // Button,
   FloatingActionBar
 } from 'vtex.styleguide'
-import { useQuery } from 'react-apollo'
-import helloworld from './graphql/helloworld.gql'
+/*import {useQuery} from 'react-apollo'
+import helloworld from './graphql/helloworld.gql'*/
+// import talk from './graphql/talk.gql'
 // import Button from '@material-ui/core/Button';
 // import "./myFile.css";
+
+
 
 const style = {
   container: {
@@ -35,9 +40,81 @@ const style = {
 };
 
 const AdminExample: FC = () => {
-  const { data } = useQuery(helloworld)
+  // const [count, setCount] = useState(0)
+  const [count] = useState(0)
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // form values
+  const [formState, setFormState] = useState({
+    emailPrefix: '',
+    anotherField: '', // Add other fields here if needed
+  });
+
+  // handler to change values
+  const handleInputChange = (event: any) => {
+    const { name, value } = event.target;
+    setFormState((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  // Save button
+  const talkToServer = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/_v/app/events-example/hcheck');
+      setData(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // cancel button
+  const stop = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/_v/app/events-example/todd');
+      setData(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  /*const testHandleClick = () => {
+    setCount(count + 1);
+  };*/
+
+/*  const handleSaveClick = () => {
+    setCount(count + 1);
+    // useQuery(talk);
+  };*/
+
+  // const {data} = useQuery(helloworld)
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <Layout>
+      <h1>Fetched Data</h1>
+      <ul>
+        {data}
+      </ul>
+      <pre>form state: {JSON.stringify(formState, null, 2)}</pre>
       <PageBlock title="Order Operator Settings"
                  subtitle="Spam orders to fill out the dashboard"
                  variation="full">
@@ -46,16 +123,24 @@ const AdminExample: FC = () => {
             <h1>Enter your settings</h1>
           </div>
           <div style={style.box}>
-            <Toggle label="Activated" size="large" />
+            <Toggle label="Activated" size="large"/>
           </div>
         </div>
         <div>Hi there</div>
-        <div><p>{data?.helloworld}</p></div>
+        {/*<div><p>{data?.helloworld}</p></div>*/}
+        <div><p>count is: {count}</p></div>
         <div className="mb5">
           <Input className="pb2 mw9" style={style.smallButton} label="Account"/>
         </div>
         <div className="mb5">
-          <Input style={style.smallButton} label="Email Prefix" placeholder="e.g. your.name"/>
+          <Input
+            name="emailPrefix"
+            style={style.smallButton}
+            label="Email Prefix"
+            placeholder="e.g. your.name"
+            value={formState.emailPrefix}
+            onChange={handleInputChange}
+          />
         </div>
         <div className="mb5">
           <Input style={style.smallButton} label="Api Key"/>
@@ -81,9 +166,11 @@ const AdminExample: FC = () => {
       <FloatingActionBar
         save={{
           label: 'save',
+          onClick: talkToServer
         }}
         cancel={{
           label: 'cancel',
+          onClick: stop
         }}
       />
     </Layout>
