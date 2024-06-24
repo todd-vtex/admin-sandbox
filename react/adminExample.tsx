@@ -63,9 +63,10 @@ const AdminExample: FC = () => {
 
   // Save button
   const talkToServer = async () => {
+    console.log('formstate is: ', formState);
     setLoading(true);
     try {
-      const response = await axios.get('/_v/app/events-example/hcheck');
+      const response = await axios.post('/_v/app/events-example/hcheck', formState);
       setData(response.data);
     } catch (err) {
       setError(err.message);
@@ -112,7 +113,7 @@ const AdminExample: FC = () => {
     <Layout>
       <h1>Fetched Data</h1>
       <ul>
-        {data}
+        <pre>{JSON.stringify(data)}</pre>
       </ul>
       <pre>form state: {JSON.stringify(formState, null, 2)}</pre>
       <PageBlock title="Order Operator Settings"
