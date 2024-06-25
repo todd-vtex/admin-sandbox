@@ -1,5 +1,6 @@
 // import React, {FC, useState, useEffect } from 'react'
-import React, {FC, useState } from 'react'
+import React, {FC, useState} from 'react'
+
 const axios = require('axios')
 import {
   Layout,
@@ -14,7 +15,6 @@ import helloworld from './graphql/helloworld.gql'*/
 // import talk from './graphql/talk.gql'
 // import Button from '@material-ui/core/Button';
 // import "./myFile.css";
-
 
 
 const style = {
@@ -45,7 +45,7 @@ const AdminExample: FC = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [powerSwitch, handleToggle] = useState(false)
+  const [powerSwitch, setPowerSwitch] = useState(false)
 
 
   // form values
@@ -64,25 +64,25 @@ const AdminExample: FC = () => {
 
   // handler to change values
   const handleInputChange = (event: any) => {
-    const { name, value } = event.target;
+    const {name, value} = event.target;
     setFormState((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-
-  // todo figure out why this is bogus, ask chatgpt to help me rewrite it
-  const handleToggle((event: any) => {
-    // turn it on
-    if (powerSwitch === false) {
-      startEngine();
-      return true
-    } else {
-      stopEngine()
-      return false
+  const handleToggle = async () => {
+    if(powerSwitch) {
+      setPowerSwitch(false)
+      await stopEngine();
     }
-  })
+  else
+    {
+      setPowerSwitch(true)
+      await startEngine();
+    }
+  }
+
   // Save button
   const saveSettings = async () => {
     console.log('formstate is: ', formState);
@@ -103,7 +103,8 @@ const AdminExample: FC = () => {
     setLoading(true);
     try {
       const response = await axios.get('/_v/app/events-example/getFromServer');
-      setFormState(response.data);
+      setFormState(response.data.orderSettings);
+      setPowerSwitch(response.data.engineRunning);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -116,7 +117,8 @@ const AdminExample: FC = () => {
     setLoading(true);
     try {
       const response = await axios.get('/_v/app/events-example/startEngine');
-      setFormState(response.data);
+      // setFormState(response.data);
+      setData(response.data)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -129,7 +131,7 @@ const AdminExample: FC = () => {
     setLoading(true);
     try {
       const response = await axios.get('/_v/app/events-example/stopEngine');
-      setFormState(response.data);
+      setData(response.data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -142,10 +144,10 @@ const AdminExample: FC = () => {
     setCount(count + 1);
   };*/
 
-/*  const handleSaveClick = () => {
-    setCount(count + 1);
-    // useQuery(talk);
-  };*/
+  /*  const handleSaveClick = () => {
+      setCount(count + 1);
+      // useQuery(talk);
+    };*/
 
   // const {data} = useQuery(helloworld)
 
@@ -176,7 +178,7 @@ const AdminExample: FC = () => {
               label={powerSwitch ? "Activated" : "Deactivated"}
               size="large"
               checked={powerSwitch}
-              onChange={}
+              onChange={handleToggle}
             />
           </div>
         </div>
@@ -258,6 +260,7 @@ const AdminExample: FC = () => {
         save={{
           label: 'save to server',
           onClick: saveSettings
+          // onClick: startEngine
         }}
         cancel={{
           label: 'get from server',
