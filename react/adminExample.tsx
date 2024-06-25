@@ -45,10 +45,20 @@ const AdminExample: FC = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [powerSwitch, handleToggle] = useState(false)
+
 
   // form values
   const [formState, setFormState] = useState({
+    account: '',
     emailPrefix: '',
+    apiKey: '',
+    token: '',
+    shippingPrice: '',
+    shippingSla: '',
+    ordersPerHour: '',
+    paymentGroupNumber: '',
+    paymentGroupName: '',
     anotherField: '', // Add other fields here if needed
   });
 
@@ -61,12 +71,24 @@ const AdminExample: FC = () => {
     }));
   };
 
+
+  // todo figure out why this is bogus, ask chatgpt to help me rewrite it
+  const handleToggle((event: any) => {
+    // turn it on
+    if (powerSwitch === false) {
+      startEngine();
+      return true
+    } else {
+      stopEngine()
+      return false
+    }
+  })
   // Save button
-  const talkToServer = async () => {
+  const saveSettings = async () => {
     console.log('formstate is: ', formState);
     setLoading(true);
     try {
-      const response = await axios.post('/_v/app/events-example/hcheck', formState);
+      const response = await axios.post('/_v/app/events-example/save', formState);
       setData(response.data);
     } catch (err) {
       setError(err.message);
@@ -76,12 +98,38 @@ const AdminExample: FC = () => {
   };
 
 
-  // cancel button
-  const stop = async () => {
+  // cancel button. currently stops the runner but should change to the switch
+  const getFromServer = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/_v/app/events-example/todd');
-      setData(response.data);
+      const response = await axios.get('/_v/app/events-example/getFromServer');
+      setFormState(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // start the engine button.
+  const startEngine = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/_v/app/events-example/startEngine');
+      setFormState(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // stop the engine
+  const stopEngine = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/_v/app/events-example/stopEngine');
+      setFormState(response.data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -113,7 +161,7 @@ const AdminExample: FC = () => {
     <Layout>
       <h1>Fetched Data</h1>
       <ul>
-        <pre>{JSON.stringify(data)}</pre>
+        <pre>Data: {JSON.stringify(data, null, 2)}</pre>
       </ul>
       <pre>form state: {JSON.stringify(formState, null, 2)}</pre>
       <PageBlock title="Order Operator Settings"
@@ -124,41 +172,83 @@ const AdminExample: FC = () => {
             <h1>Enter your settings</h1>
           </div>
           <div style={style.box}>
-            <Toggle label="Activated" size="large"/>
+            <Toggle
+              label={powerSwitch ? "Activated" : "Deactivated"}
+              size="large"
+              checked={powerSwitch}
+              onChange={}
+            />
           </div>
         </div>
         <div>Hi there</div>
         {/*<div><p>{data?.helloworld}</p></div>*/}
         <div><p>count is: {count}</p></div>
         <div className="mb5">
-          <Input className="pb2 mw9" style={style.smallButton} label="Account"/>
+          <Input className="pb2 mw9" style={style.smallButton} label="Account"
+                 name="account"
+                 value={formState.account}
+                 onChange={handleInputChange}
+          />
         </div>
         <div className="mb5">
           <Input
-            name="emailPrefix"
             style={style.smallButton}
             label="Email Prefix"
             placeholder="e.g. your.name"
+            name="emailPrefix"
             value={formState.emailPrefix}
             onChange={handleInputChange}
           />
         </div>
         <div className="mb5">
-          <Input style={style.smallButton} label="Api Key"/>
+          <Input style={style.smallButton} label="Api Key"
+                 name="apiKey"
+                 value={formState.apiKey}
+                 onChange={handleInputChange}
+          />
         </div>
         <div className="mb5">
-          <Input style={style.smallButton} label="Token"/>
+          <Input style={style.smallButton} label="Token"
+                 name="token"
+                 value={formState.token}
+                 onChange={handleInputChange}
+          />
         </div>
         <div className="mb5">
-          <Input style={style.smallButton} label="Shipping Price" placeholder="in pennies e.g. 500"/>
+          <Input style={style.smallButton} label="Shipping Price" placeholder="in pennies e.g. 500"
+                 name="shippingPrice"
+                 value={formState.shippingPrice}
+                 onChange={handleInputChange}
+          />
         </div>
         <div className="mb5">
-          <Input style={style.smallButton} label="Shipping SLA Name" placeholder="e.g. Standard Delivery"/>
+          <Input style={style.smallButton} label="Shipping SLA Name" placeholder="e.g. Standard Delivery"
+                 name="shippingSla"
+                 value={formState.shippingSla}
+                 onChange={handleInputChange}
+          />
         </div>
         <div className="mb5">
-          <Input style={style.smallButton} label="Orders Per Hour" placeholder="e.g. 20"/>
+          <Input style={style.smallButton} label="Orders Per Hour" placeholder="e.g. 20"
+                 name="ordersPerHour"
+                 value={formState.ordersPerHour}
+                 onChange={handleInputChange}
+          />
         </div>
-
+        <div className="mb5">
+          <Input style={style.smallButton} label="Payment Group #" placeholder="e.g. 17"
+                 name="paymentGroupNumber"
+                 value={formState.paymentGroupNumber}
+                 onChange={handleInputChange}
+          />
+        </div>
+        <div className="mb5">
+          <Input style={style.smallButton} label="Payment Group Name" placeholder="e.g. PromissoryPaymentGroup"
+                 name="paymentGroupName"
+                 value={formState.paymentGroupName}
+                 onChange={handleInputChange}
+          />
+        </div>
       </PageBlock>
 
       {/*<Button></Button>*/}
@@ -166,16 +256,16 @@ const AdminExample: FC = () => {
 
       <FloatingActionBar
         save={{
-          label: 'save',
-          onClick: talkToServer
+          label: 'save to server',
+          onClick: saveSettings
         }}
         cancel={{
-          label: 'cancel',
-          onClick: stop
+          label: 'get from server',
+          onClick: getFromServer
         }}
       />
     </Layout>
-  )
+  );
 }
 
 export default AdminExample
