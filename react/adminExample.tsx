@@ -42,7 +42,7 @@ const style = {
 const AdminExample: FC = () => {
   // const [count, setCount] = useState(0)
   const [count] = useState(0)
-  const [message, setMessage] = useState([]);
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [powerSwitch, setPowerSwitch] = useState(false)
@@ -66,11 +66,13 @@ const AdminExample: FC = () => {
   // do this when the component loads
   useEffect(() => {
     const fetchData = async () => {
-      // console.log('ok im in useeffect');
+      setLoading(true);
       try {
         const response = await axios.get('/_v/app/events-example/getFromServer');
         setFormState(response.data.orderSettings);
         setPowerSwitch(response.data.engineRunning);
+        const msg: any = 'Retrieved data from server'
+        setMessage(msg)
       } catch (err) {
         setError(err.message);
       } finally {
@@ -159,6 +161,7 @@ const AdminExample: FC = () => {
   };
 
 
+
   /*const testHandleClick = () => {
     setCount(count + 1);
   };*/
@@ -181,9 +184,8 @@ const AdminExample: FC = () => {
   return (
     <Layout>
       <h1>Fetched Data</h1>
-      <ul>
-        <pre>Message: {JSON.stringify(message, null, 2)}</pre>
-      </ul>
+      <div>Message: {message}</div>
+
       <pre>form state: {JSON.stringify(formState, null, 2)}</pre>
       <PageBlock title="Order Operator Settings"
                  subtitle="Spam orders to fill out the dashboard"
