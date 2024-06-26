@@ -1,5 +1,5 @@
 // import React, {FC, useState, useEffect } from 'react'
-import React, {FC, useState} from 'react'
+import React, {FC, useState, useEffect} from 'react'
 
 const axios = require('axios')
 import {
@@ -42,7 +42,7 @@ const style = {
 const AdminExample: FC = () => {
   // const [count, setCount] = useState(0)
   const [count] = useState(0)
-  const [data, setData] = useState([]);
+  const [message, setMessage] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [powerSwitch, setPowerSwitch] = useState(false)
@@ -54,6 +54,7 @@ const AdminExample: FC = () => {
     emailPrefix: '',
     apiKey: '',
     token: '',
+    skus: '',
     shippingPrice: '',
     shippingSla: '',
     ordersPerHour: '',
@@ -61,6 +62,24 @@ const AdminExample: FC = () => {
     paymentGroupName: '',
     anotherField: '', // Add other fields here if needed
   });
+
+  // do this when the component loads
+  useEffect(() => {
+    const fetchData = async () => {
+      // console.log('ok im in useeffect');
+      try {
+        const response = await axios.get('/_v/app/events-example/getFromServer');
+        setFormState(response.data.orderSettings);
+        setPowerSwitch(response.data.engineRunning);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // Empty dependency array means this effect runs once when the component mounts
 
   // handler to change values
   const handleInputChange = (event: any) => {
@@ -85,11 +104,11 @@ const AdminExample: FC = () => {
 
   // Save button
   const saveSettings = async () => {
-    console.log('formstate is: ', formState);
+    // console.log('formstate is: ', formState);
     setLoading(true);
     try {
       const response = await axios.post('/_v/app/events-example/save', formState);
-      setData(response.data);
+      setMessage(response.data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -118,7 +137,7 @@ const AdminExample: FC = () => {
     try {
       const response = await axios.get('/_v/app/events-example/startEngine');
       // setFormState(response.data);
-      setData(response.data)
+      setMessage(response.data)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -131,7 +150,7 @@ const AdminExample: FC = () => {
     setLoading(true);
     try {
       const response = await axios.get('/_v/app/events-example/stopEngine');
-      setData(response.data);
+      setMessage(response.data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -158,12 +177,12 @@ const AdminExample: FC = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
+// console.log('right above return statement');
   return (
     <Layout>
       <h1>Fetched Data</h1>
       <ul>
-        <pre>Data: {JSON.stringify(data, null, 2)}</pre>
+        <pre>Message: {JSON.stringify(message, null, 2)}</pre>
       </ul>
       <pre>form state: {JSON.stringify(formState, null, 2)}</pre>
       <PageBlock title="Order Operator Settings"
@@ -217,6 +236,14 @@ const AdminExample: FC = () => {
           />
         </div>
         <div className="mb5">
+          <Input style={style.smallButton} label="Skus"
+                 placeholder="comma separated, e.g. 1,2,3"
+                 name="skus"
+                 value={formState.skus}
+                 onChange={handleInputChange}
+          />
+        </div>
+        <div className="mb5">
           <Input style={style.smallButton} label="Shipping Price" placeholder="in pennies e.g. 500"
                  name="shippingPrice"
                  value={formState.shippingPrice}
@@ -260,7 +287,6 @@ const AdminExample: FC = () => {
         save={{
           label: 'save to server',
           onClick: saveSettings
-          // onClick: startEngine
         }}
         cancel={{
           label: 'get from server',
